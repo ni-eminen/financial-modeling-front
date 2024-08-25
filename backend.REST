@@ -1,0 +1,14 @@
+# POST http://localhost:8000/create-operator/matias HTTP/1.1
+
+POST http://localhost:8000/create-quantity HTTP/1.1
+content-type: application/json
+
+{
+    "quantity_name": "s1",
+    "operator_name": "matias",
+    "model": "binomial",
+    "model_params": {
+        "n": 30,
+        "p": 0.2
+    }
+}
