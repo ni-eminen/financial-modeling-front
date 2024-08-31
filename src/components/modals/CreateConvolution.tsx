@@ -5,8 +5,8 @@ import {
   TextField,
   DialogActions,
   Button,
-  Select,
   MenuItem,
+  Grid,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { ModelParams, ModelType, Quantity } from "../../types/types";
@@ -50,97 +50,130 @@ export const CreateConvolutionModal = ({
     >
       <DialogTitle>Create Convolution</DialogTitle>
       <DialogContent>
-        <TextField
-          autoFocus
-          margin="dense"
-          label="Convolution Name"
-          type="text"
-          fullWidth
-          value={convolutionName}
-          onChange={(value) => setConvolutionName(value.target.value)}
-        />
-        <Select
-          id="op1"
-          value={operator1Name}
-          label="Operator 1"
-          onChange={(value) => {
-            setOperator1Name(value.target.value);
-          }}
-        >
-          {operators.map((operator: string) => {
-            return (
-              <MenuItem key={operator} value={operator}>
-                {operator}
-              </MenuItem>
-            );
-          })}
-        </Select>
-        <Select
-          id="op2"
-          value={operator2Name}
-          label="Operator 2"
-          onChange={(value) => {
-            setOperator2Name(value.target.value);
-          }}
-        >
-          {operators.map((operator: string) => {
-            return (
-              <MenuItem key={`${operator}2`} value={operator}>
-                {operator}
-              </MenuItem>
-            );
-          })}
-        </Select>
-        <Select
-          id="q1"
-          value={quantity1Name}
-          label="Quantity 1"
-          onChange={(value) => {
-            setQuantity1Name(value.target.value);
-          }}
-        >
-          {quantities.map((q: Quantity) => {
-            if (q.operator != operator1Name && q.operator != "global") {
-              return;
-            }
-            return (
-              <MenuItem value={q.name}>
-                {q.operator} {q.name}
-              </MenuItem>
-            );
-          })}
-        </Select>
-        <Select
-          id="q2"
-          value={quantity2Name}
-          label="Quantity 2"
-          onChange={(value) => {
-            setQuantity2Name(value.target.value);
-          }}
-        >
-          {quantities.map((q: Quantity) => {
-            if (q.operator != operator2Name && q.operator != "global") {
-              return;
-            }
-            return (
-              <MenuItem value={q.name}>
-                {q.operator} {q.name}
-              </MenuItem>
-            );
-          })}
-        </Select>
-        <Select
-          id="ope"
-          value={operation}
-          label="Operation"
-          onChange={(value) => {
-            setOperation(value.target.value);
-          }}
-        >
-          {["*", "+", "-", "/"].map((op: string) => {
-            return <MenuItem value={op}>{op}</MenuItem>;
-          })}
-        </Select>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Convolution Name"
+              type="text"
+              fullWidth
+              value={convolutionName}
+              onChange={(value) => setConvolutionName(value.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              select
+              fullWidth
+              id="op1"
+              value={operator1Name}
+              label="Operator 1"
+              onChange={(value) => {
+                setOperator1Name(value.target.value);
+              }}
+            >
+              {operators.map((operator: string) => {
+                return (
+                  <MenuItem key={operator} value={operator}>
+                    {operator}
+                  </MenuItem>
+                );
+              })}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              select
+              fullWidth
+              id="op2"
+              value={operator2Name}
+              label="Operator 2"
+              onChange={(value) => {
+                setOperator2Name(value.target.value);
+              }}
+            >
+              {operators.map((operator: string) => {
+                return (
+                  <MenuItem key={`${operator}2`} value={operator}>
+                    {operator}
+                  </MenuItem>
+                );
+              })}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              select
+              fullWidth
+              id="q1"
+              value={quantity1Name}
+              label="Quantity 1"
+              onChange={(value) => {
+                setQuantity1Name(value.target.value);
+              }}
+            >
+              {quantities.map((q: Quantity) => {
+                if (q.operator != operator1Name && q.operator != "global") {
+                  return;
+                }
+                return (
+                  <MenuItem value={q.name}>
+                    {q.operator} {q.name}
+                  </MenuItem>
+                );
+              })}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              select
+              fullWidth
+              id="q2"
+              value={quantity2Name}
+              label="Quantity 2"
+              onChange={(value) => {
+                setQuantity2Name(value.target.value);
+              }}
+            >
+              {quantities.map((q: Quantity) => {
+                if (q.operator != operator2Name && q.operator != "global") {
+                  return;
+                }
+                return (
+                  <MenuItem value={q.name}>
+                    {q.operator} {q.name}
+                  </MenuItem>
+                );
+              })}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              select
+              fullWidth
+              id="ope"
+              value={operation}
+              label="Operation"
+              onChange={(value) => {
+                setOperation(value.target.value);
+              }}
+            >
+              {[
+                { label: "product (*)", sign: "*" },
+                { label: "sum (+)", sign: "+" },
+                { label: "difference (-)", sign: "-" },
+                { label: "product (*)", sign: "*" },
+              ].map((op: any) => {
+                return <MenuItem value={op.sign}>{op.label}</MenuItem>;
+              })}
+            </TextField>
+          </Grid>
+        </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleCloseCreateConvolutionModal}>Cancel</Button>

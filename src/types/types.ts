@@ -9,22 +9,22 @@ export type BinomialModelParams = {
   p: number;
 };
 
-export type MultinomialModelParams = {
-  n: number;
+export type CategoricalModelParams = {
   p: number[];
   categories: string[];
+  values: number[];
 };
 
 // Define a union type for ModelParams based on the model type
 export type ModelParams =
   | GammaModelParams
   | BinomialModelParams
-  | MultinomialModelParams;
+  | CategoricalModelParams;
 
 // Define the valid model types
-export type ModelType = "gamma" | "binomial" | "multinomial";
+export type ModelType = "gamma" | "binomial" | "categorical";
 
-export type DomainType = "discrete" | "continuous";
+export type DomainType = "discrete" | "continuous" | "categorical";
 
 export interface Quantity {
   name: string;
@@ -33,6 +33,7 @@ export interface Quantity {
   pdf_samples: XYSamplesNumerical;
   cdf_samples: XYSamplesNumerical;
   domain_type: DomainType;
+  categories: string[];
 }
 
 export interface XYSamplesNumerical {

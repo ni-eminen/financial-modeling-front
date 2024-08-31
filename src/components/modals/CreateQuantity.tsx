@@ -10,7 +10,11 @@ import {
   Grid,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { ModelParams, ModelType } from "../../types/types";
+import {
+  CategoricalModelParams,
+  ModelParams,
+  ModelType,
+} from "../../types/types";
 
 export const CreateQuantityModal = ({
   operatorName,
@@ -23,20 +27,25 @@ export const CreateQuantityModal = ({
     q_name: string,
     operator_name: string,
     model: ModelType,
-    model_params: ModelParams
+    model_params: ModelParams,
+    categories: string[]
   ) => void;
   handleCloseCreateQuantityModal: () => void;
   openCreateQuantityModal: boolean;
 }) => {
-  const [quantityName, setQuantityName] = useState("");
-  const [modelType, setModelType] = useState<ModelType>("gamma");
-  const [modelParams, setModelParams] = useState<ModelParams>({
+  const defaultModelParams = {
     a: 0,
     scale: 0,
-  });
+  };
+  const defaultModel = "gamma";
+
+  const [quantityName, setQuantityName] = useState("");
+  const [modelType, setModelType] = useState<ModelType>("gamma");
+  const [modelParams, setModelParams] =
+    useState<ModelParams>(defaultModelParams);
   const [columns, setColumns] = useState<number[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const models: ModelType[] = ["gamma", "binomial", "multinomial"];
+  const models: ModelType[] = ["gamma", "binomial", "categorical"];
 
   const getModelParams = (model: ModelType): ModelParams => {
     switch (model) {
@@ -44,8 +53,8 @@ export const CreateQuantityModal = ({
         return { a: 0, scale: 0 };
       case "binomial":
         return { n: 0, p: 0 };
-      case "multinomial":
-        return { n: 0, p: [], categories: [] };
+      case "categorical":
+        return { p: [], categories: [], values: [] };
     }
   };
 
@@ -89,7 +98,7 @@ export const CreateQuantityModal = ({
           value={quantityName}
           onChange={handleQuantityNameChange}
         />
-        {modelType != "multinomial" ? (
+        {modelType != "categorical" ? (
           Object.keys(modelParams).map((arg: string, i: number) => {
             return (
               <TextField
@@ -114,12 +123,16 @@ export const CreateQuantityModal = ({
                 <Grid item xs={12} key={columnIndex}>
                   <Grid container spacing={2}>
                     {/* Loop through each input field in a column */}
-                    {["categories", "p"].map((arg) => (
+                    {["categories", "p", "values"].map((arg, i) => (
                       <Grid item xs={4} key={arg}>
                         <TextField
                           autoFocus
                           margin="dense"
-                          label={arg}
+                          label={
+                            ["category name", "probability", "numerical value"][
+                              i
+                            ]
+                          }
                           type="text"
                           fullWidth
                           value={
@@ -130,21 +143,23 @@ export const CreateQuantityModal = ({
 
                             let oldArr: string[] =
                               modelParams[arg as keyof typeof modelParams];
-                            console.log(oldArr);
 
                             if (oldArr.length == 0) {
                               oldArr.push(newString);
                             } else {
-                              console.log(columnIndex);
                               oldArr[columnIndex] = newString;
                             }
 
                             const newModelParams = {
                               ...modelParams,
                               [arg]: oldArr,
-                              n: columns.length,
                             };
-                            console.log(newModelParams);
+
+                            setCategories(
+                              (newModelParams as CategoricalModelParams)
+                                .categories
+                            );
+
                             setModelParams(newModelParams);
                           }}
                         />
@@ -171,14 +186,20 @@ export const CreateQuantityModal = ({
       <DialogActions>
         <Button onClick={handleCloseCreateQuantityModal}>Cancel</Button>
         <Button
-          onClick={() =>
+          onClick={() => {
             handleCreateQuantity(
               quantityName,
               operatorName,
               modelType,
-              modelParams
-            )
-          }
+              modelParams,
+              categories
+            );
+            setModelParams(defaultModelParams);
+            setModelType(defaultModel);
+            setCategories([]);
+            setColumns([]);
+            setQuantityName("");
+          }}
           variant="contained"
         >
           Create

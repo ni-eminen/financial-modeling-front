@@ -30,7 +30,8 @@ export const createQuantity = async (
   quantity_name: string,
   operator_name: string,
   model: ModelType,
-  model_params: ModelParams
+  model_params: ModelParams,
+  categories: string[]
 ): Promise<any> => {
   try {
     const payload = {
@@ -38,6 +39,7 @@ export const createQuantity = async (
       operator_name,
       model,
       model_params,
+      categories,
     };
 
     const response: AxiosResponse = await apiClient.post(

@@ -39,10 +39,30 @@ ChartJS.register(
   LineElement // Register LineElement
 );
 
+function getMax(arr: number[]) {
+  let len = arr.length;
+  let max = -Infinity;
+
+  while (len--) {
+    max = arr[len] > max ? arr[len] : max;
+  }
+  return max;
+}
+
+function getMin(arr: number[]) {
+  let len = arr.length;
+  let max = -Infinity;
+
+  while (len--) {
+    max = arr[len] < max ? arr[len] : max;
+  }
+  return max;
+}
+
 // Function to bin samples data into a specified number of bins (frequency)
 const binSamplesData = (samples: number[], numberOfBins: number) => {
-  const min = Math.min(...samples);
-  const max = Math.max(...samples);
+  const min = getMin(samples);
+  const max = getMax(samples);
   const binWidth = (max - min) / numberOfBins;
 
   const bins = new Array(numberOfBins).fill(0); // Initialize bins with zeros
@@ -60,6 +80,16 @@ const binSamplesData = (samples: number[], numberOfBins: number) => {
       { length: numberOfBins },
       (_, i) => min + i * binWidth
     ),
+    bins,
+  };
+};
+
+const binPdfDataCategorical = (pdfSamples: XYSamplesNumerical) => {
+  const nOfBins = pdfSamples.x.length;
+
+  const bins = pdfSamples.y;
+
+  return {
     bins,
   };
 };
@@ -89,29 +119,27 @@ const binPdfData = (pdfSamples: XYSamplesNumerical, numberOfBins: number) => {
   };
 };
 
-// Function to bin PDF data into a specified number of bins (density)
-const binPdfDataCategorical = (
-  pdfSamples: XYSamplesCategorical,
-  numberOfBins: number
-) => {
-  const bins = new Array(numberOfBins).fill(0); // Initialize bins with zeros
-
-  return {
-    bins,
-  };
-};
-
 const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
-  const { name, operator, samples, pdf_samples, cdf_samples, domain_type } =
-    quantity;
+  const {
+    name,
+    operator,
+    samples,
+    pdf_samples,
+    cdf_samples,
+    domain_type,
+    categories,
+  } = quantity;
   const [expanded, setExpanded] = useState(false);
 
   // State for the number of bins
   const [numberOfBins, setNumberOfBins] = useState(
-    domain_type == "discrete" ? pdf_samples.y.filter((y) => y != 0).length : 20
+    domain_type == "discrete" ? pdf_samples.y.filter((y) => y != 0).length : 10
   );
 
-  const pdfBin = binPdfData(pdf_samples, numberOfBins);
+  const pdfBin =
+    categories.length != 0
+      ? binPdfDataCategorical(pdf_samples)
+      : binPdfData(pdf_samples, numberOfBins);
 
   const samplesBin = binSamplesData(samples, numberOfBins);
   // Data for the histogram (bar chart)
@@ -130,7 +158,10 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
 
   // Data for the PDF bin chart (displaying density per bin)
   const pdfData = {
-    labels: pdfBin.binEdges.map((edge) => edge.toFixed(0)), // Use bin edges as labels
+    labels:
+      categories.length != 0
+        ? categories
+        : (pdfBin as any).binEdges.map((edge: any) => edge.toFixed(0)), // Use bin edges as labels
     datasets: [
       {
         label: "PDF Density",
@@ -243,8 +274,8 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
           {quantity.domain_type == "continuous" ? (
             <Slider
               value={numberOfBins}
-              min={20}
-              max={100}
+              min={5}
+              max={30}
               step={1}
               onChange={(event, newValue) =>
                 setNumberOfBins(newValue as number)

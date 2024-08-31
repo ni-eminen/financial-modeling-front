@@ -68,14 +68,16 @@ const ProbablyApp = () => {
     q_name: string,
     operator_name: string,
     model: ModelType,
-    model_params: ModelParams
+    model_params: ModelParams,
+    categories: string[]
   ) => {
     // console.log("Quantity created:", QuantityName);
     const quantity = await createQuantity(
       q_name,
       operator_name,
       model,
-      model_params
+      model_params,
+      categories
     );
 
     setQuantities([quantity, ...quantities]);
