@@ -60,7 +60,6 @@ export const CreateQuantityModal = ({
 
   useEffect(() => {
     const params = getModelParams(modelType);
-    console.log("initial model parasm", params);
     setModelParams(params as ModelParams);
   }, [modelType]);
 

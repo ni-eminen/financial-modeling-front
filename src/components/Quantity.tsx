@@ -1,5 +1,5 @@
 // QuantityComponent.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -9,6 +9,7 @@ import {
   Button,
 } from "@mui/material";
 import { Bar, Line } from "react-chartjs-2";
+import TextField from "@mui/material/TextField";
 import {
   Chart as ChartJS,
   BarElement,
@@ -26,6 +27,8 @@ import {
   XYSamplesCategorical,
   XYSamplesNumerical,
 } from "../types/types";
+import { JSX } from "react/jsx-runtime";
+import { updateQuantityParams } from "../services/genericService";
 
 // Register Chart.js components
 ChartJS.register(
@@ -120,63 +123,73 @@ const binPdfData = (pdfSamples: XYSamplesNumerical, numberOfBins: number) => {
 };
 
 const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
-  const {
-    name,
-    operator,
-    samples,
-    pdf_samples,
-    cdf_samples,
-    domain_type,
-    categories,
-  } = quantity;
+  const [quantity_, setQuantity] = useState<Quantity>(quantity);
   const [expanded, setExpanded] = useState(false);
+  const [paramsState, setParamsState] = useState(quantity_.params);
+  const [pdfData, setPdfData] = useState<any>();
 
   // State for the number of bins
   const [numberOfBins, setNumberOfBins] = useState(
-    domain_type == "discrete" ? pdf_samples.y.filter((y) => y != 0).length : 10
+    quantity_.domain_type == "discrete"
+      ? quantity_.pdf_samples.y.filter((y) => y != 0).length
+      : 10
   );
 
-  const pdfBin =
-    categories.length != 0
-      ? binPdfDataCategorical(pdf_samples)
-      : binPdfData(pdf_samples, numberOfBins);
+  useEffect(() => {
+    const getData = async () => {
+      const newQuantity = await updateQuantityParams(
+        quantity_.name,
+        paramsState,
+        quantity_.operator
+      );
+      setQuantity(newQuantity);
+      console.log("new quantity", newQuantity);
+    };
+    paramsState != quantity_.params && getData();
+  }, [paramsState]);
 
-  const samplesBin = binSamplesData(samples, numberOfBins);
   // Data for the histogram (bar chart)
-  const samplesData = {
-    labels: samplesBin.binEdges.map((edge) => edge.toFixed(0)), // Use bin edges as labels
-    datasets: [
-      {
-        label: "Frequency",
-        data: samplesBin.bins,
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
+  // const samplesData = {
+  //   labels: samplesBin.binEdges.map((edge) => edge.toFixed(0)), // Use bin edges as labels
+  //   datasets: [
+  //     {
+  //       label: "Frequency",
+  //       data: samplesBin.bins,
+  //       backgroundColor: "rgba(75, 192, 192, 0.6)",
+  //       borderColor: "rgba(75, 192, 192, 1)",
+  //       borderWidth: 1,
+  //     },
+  //   ],
+  // };
 
-  // Data for the PDF bin chart (displaying density per bin)
-  const pdfData = {
-    labels:
-      categories.length != 0
-        ? categories
-        : (pdfBin as any).binEdges.map((edge: any) => edge.toFixed(0)), // Use bin edges as labels
-    datasets: [
-      {
-        label: "PDF Density",
-        data: pdfBin.bins, // Use the sum of densities in each bin
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
+  useEffect(() => {
+    const pdfBin =
+      quantity_.categories.length != 0
+        ? binPdfDataCategorical(quantity_.pdf_samples)
+        : binPdfData(quantity_.pdf_samples, numberOfBins);
+    // Data for the PDF bin chart (displaying density per bin)
+    const newPdfData = {
+      labels:
+        quantity_.categories.length != 0
+          ? quantity_.categories
+          : (pdfBin as any).binEdges.map((edge: any) => edge.toFixed(0)), // Use bin edges as labels
+      datasets: [
+        {
+          label: "PDF Density",
+          data: pdfBin.bins, // Use the sum of densities in each bin
+          backgroundColor: "rgba(75, 192, 192, 0.6)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 1,
+        },
+      ],
+    };
+    setPdfData(newPdfData);
+  }, [quantity_, numberOfBins]);
 
   // Data for the CDF line chart (displaying values directly)
   // Data for the CDF line chart (displaying values directly)
   const cdfData = {
-    labels: cdf_samples.x.map((n) => {
+    labels: quantity_.cdf_samples.x.map((n) => {
       if (typeof n == "string") {
         return n;
       }
@@ -185,7 +198,7 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
     datasets: [
       {
         label: "CDF Values",
-        data: cdf_samples.y, // Directly use the cdf_samples values
+        data: quantity_.cdf_samples.y, // Directly use the cdf_samples values
         borderColor: "rgba(153, 102, 255, 1)",
         fill: false,
         tension: 0.1,
@@ -220,9 +233,6 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
         display: false,
       },
     },
-
-    // barPercentage: 1.0,
-    // categoryPercentage: 1.0,
   };
 
   const lineChartOptions: ChartOptions<"line"> = {
@@ -262,10 +272,10 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
     <Card sx={{ margin: 2 }}>
       <CardContent>
         <Typography variant="h5" component="div">
-          {name}
+          {quantity_.name}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Operator: {operator}
+          Operator: {quantity_.operator}
         </Typography>
 
         {/* Slider to control the number of bins */}
@@ -287,16 +297,34 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
           )}
         </Box>
 
-        {/* Histogram (Bar Chart) */}
-        {/* <Box sx={{ marginTop: 2 }}>
-          <Typography>Samples</Typography>
-          <Bar data={samplesData} options={barChartOptions} />
-        </Box> */}
+        {/* Params */}
+        <Box sx={{ marginTop: 2 }}>
+          <Typography gutterBottom>Parameters:</Typography>
+          {Object.entries(paramsState).map(([key, value], i) => {
+            return (
+              <TextField
+                sx={{ paddingTop: "8px", paddingBottom: "8px" }}
+                key={key} // Add key prop for better performance and to avoid console warnings
+                label={key}
+                id={`outlined-number-${i}`} // Ensure unique ID for each TextField
+                type="number"
+                value={value} // Handle undefined value gracefully
+                onChange={(e) => {
+                  setParamsState({
+                    ...paramsState,
+                    [key]: Number(e.target.value),
+                  });
+                }}
+              />
+            );
+          })}
+        </Box>
 
+        {/* Histogram (Bar Chart) */}
         {/* PDF Bin Chart */}
         <Box sx={{ marginTop: 2 }}>
           <Typography>Forecast</Typography>
-          <Bar data={pdfData} options={barChartOptions} />
+          {pdfData && <Bar data={pdfData} options={barChartOptions} />}
           <Button onClick={() => setExpanded(!expanded)}>
             {expanded ? "Shrink" : "Expand"}
           </Button>

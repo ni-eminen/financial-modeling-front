@@ -34,6 +34,7 @@ export interface Quantity {
   cdf_samples: XYSamplesNumerical;
   domain_type: DomainType;
   categories: string[];
+  params: any;
 }
 
 export interface XYSamplesNumerical {

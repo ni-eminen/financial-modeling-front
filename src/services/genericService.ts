@@ -1,6 +1,6 @@
 // ./services/genericService.ts
 import axios, { AxiosResponse } from "axios";
-import { ModelParams, ModelType } from "../types/types";
+import { ModelParams, ModelType, Quantity } from "../types/types";
 
 // Define the base URL for the backend
 const API_BASE_URL = "http://localhost:8000";
@@ -46,6 +46,8 @@ export const createQuantity = async (
       `${API_BASE_URL}/create-quantity`,
       payload
     );
+
+    console.log(response.data);
 
     return response.data; // Return the response data
   } catch (error) {
@@ -95,4 +97,27 @@ export const postData = async (endpoint: string, data: any): Promise<any> => {
   }
 };
 
+export const updateQuantityParams = async (
+  name: string,
+  newParams: any,
+  operator: string
+) => {
+  try {
+    const payload = {
+      params: newParams,
+      operator_name: operator,
+      quantity_name: name,
+    };
+
+    const response = await apiClient.post(
+      `${API_BASE_URL}/update-parameters`,
+      payload
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("updateQuantityParams", error);
+    return { error };
+  }
+};
 // Add more functions for other HTTP methods (PUT, DELETE, etc.) as needed
