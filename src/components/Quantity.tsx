@@ -143,9 +143,9 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
         quantity_.operator
       );
       setQuantity(newQuantity);
-      console.log("new quantity", newQuantity);
     };
-    paramsState != quantity_.params && getData();
+
+    paramsState != quantity.params && getData();
   }, [paramsState]);
 
   // Data for the histogram (bar chart)
@@ -281,7 +281,7 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
         {/* Slider to control the number of bins */}
         <Box sx={{ marginTop: 2 }}>
           <Typography gutterBottom>Number of Bins: {numberOfBins}</Typography>
-          {quantity.domain_type == "continuous" ? (
+          {true ? (
             <Slider
               value={numberOfBins}
               min={5}
@@ -298,27 +298,31 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
         </Box>
 
         {/* Params */}
-        <Box sx={{ marginTop: 2 }}>
-          <Typography gutterBottom>Parameters:</Typography>
-          {Object.entries(paramsState).map(([key, value], i) => {
-            return (
-              <TextField
-                sx={{ paddingTop: "8px", paddingBottom: "8px" }}
-                key={key} // Add key prop for better performance and to avoid console warnings
-                label={key}
-                id={`outlined-number-${i}`} // Ensure unique ID for each TextField
-                type="number"
-                value={value} // Handle undefined value gracefully
-                onChange={(e) => {
-                  setParamsState({
-                    ...paramsState,
-                    [key]: Number(e.target.value),
-                  });
-                }}
-              />
-            );
-          })}
-        </Box>
+        {quantity_.type !== "convolution" ? (
+          <Box sx={{ marginTop: 2 }}>
+            <Typography gutterBottom>Parameters:</Typography>
+            {Object.entries(paramsState).map(([key, value], i) => {
+              return (
+                <TextField
+                  sx={{ paddingTop: "8px", paddingBottom: "8px" }}
+                  key={key} // Add key prop for better performance and to avoid console warnings
+                  label={key}
+                  id={`outlined-number-${i}`} // Ensure unique ID for each TextField
+                  type="number"
+                  value={value} // Handle undefined value gracefully
+                  onChange={(e) => {
+                    setParamsState({
+                      ...paramsState,
+                      [key]: Number(e.target.value),
+                    });
+                  }}
+                />
+              );
+            })}
+          </Box>
+        ) : (
+          <></>
+        )}
 
         {/* Histogram (Bar Chart) */}
         {/* PDF Bin Chart */}

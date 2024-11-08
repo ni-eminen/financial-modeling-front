@@ -47,8 +47,6 @@ export const createQuantity = async (
       payload
     );
 
-    console.log(response.data);
-
     return response.data; // Return the response data
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -121,3 +119,17 @@ export const updateQuantityParams = async (
   }
 };
 // Add more functions for other HTTP methods (PUT, DELETE, etc.) as needed
+
+export const getNewSamples = async (operator: string, quantity: string) => {
+  try {
+    const payload = {
+      operator_name: operator,
+      quantity_name: quantity,
+    };
+    const response = await apiClient.get(`${API_BASE_URL}/get-new-samples`);
+    return response.data;
+  } catch (error) {
+    console.error("updateAllSamples", error);
+    return { error };
+  }
+};

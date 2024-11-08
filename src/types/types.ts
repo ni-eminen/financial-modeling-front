@@ -28,6 +28,7 @@ export type DomainType = "discrete" | "continuous" | "categorical";
 
 export interface Quantity {
   name: string;
+  type: "convolution" | "generic" | "categorical";
   operator: string;
   samples: number[];
   pdf_samples: XYSamplesNumerical;

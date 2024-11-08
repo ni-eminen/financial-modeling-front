@@ -199,9 +199,11 @@ const ProbablyApp = () => {
                 {quantities
                   .filter((q) => q.operator === selectedOperator)
                   .map((q: Quantity, index: number) => (
-                    <Grid item xs={6} sm={6} md={6} lg={6} key={index}>
-                      <QuantityComponent quantity={q} />
-                    </Grid>
+                    <>
+                      <Grid item xs={6} sm={6} md={6} lg={6} key={q.name}>
+                        <QuantityComponent quantity={q} />
+                      </Grid>
+                    </>
                   ))}
               </Grid>
             </Paper>
