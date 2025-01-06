@@ -34,8 +34,8 @@ export const CreateQuantityModal = ({
   openCreateQuantityModal: boolean;
 }) => {
   const defaultModelParams = {
-    a: 0,
-    scale: 0,
+    a: 1,
+    scale: 1,
   };
   const defaultModel = "gamma";
 
@@ -45,14 +45,35 @@ export const CreateQuantityModal = ({
     useState<ModelParams>(defaultModelParams);
   const [columns, setColumns] = useState<number[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const models: ModelType[] = ["gamma", "binomial", "categorical"];
+  const models: ModelType[] = [
+    "gamma",
+    "binom",
+    "norm",
+    "categorical",
+    "poisson",
+    "uniform",
+    "bernoulli",
+    "geom",
+  ];
 
   const getModelParams = (model: ModelType): ModelParams => {
     switch (model) {
       case "gamma":
-        return { a: 0, scale: 0 };
-      case "binomial":
+        return { a: 1, scale: 1 };
+      case "binom":
         return { n: 0, p: 0 };
+      case "norm":
+        return { loc: 0, scale: 0 };
+      case "poisson":
+        return { mu: 0 };
+      case "uniform":
+        return { loc: 0, scale: 0 };
+      case "bernoulli":
+        return { p: 0.5 };
+      case "geom":
+        return {
+          p: 0.5,
+        };
       case "categorical":
         return { p: [], categories: [], values: [] };
     }
@@ -104,7 +125,7 @@ export const CreateQuantityModal = ({
                 autoFocus
                 margin="dense"
                 label={arg}
-                type="text"
+                type="number"
                 fullWidth
                 value={modelParams[arg as keyof ModelParams]}
                 onChange={(value) => {

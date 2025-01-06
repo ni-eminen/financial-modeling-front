@@ -27,7 +27,6 @@ import {
   XYSamplesCategorical,
   XYSamplesNumerical,
 } from "../types/types";
-import { JSX } from "react/jsx-runtime";
 import { updateQuantityParams } from "../services/genericService";
 
 // Register Chart.js components
@@ -125,7 +124,9 @@ const binPdfData = (pdfSamples: XYSamplesNumerical, numberOfBins: number) => {
 const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
   const [quantity_, setQuantity] = useState<Quantity>(quantity);
   const [expanded, setExpanded] = useState(false);
-  const [paramsState, setParamsState] = useState(quantity_.params);
+  const [paramsState, setParamsState] = useState<{ [key: string]: string }>(
+    quantity_.params
+  );
   const [pdfData, setPdfData] = useState<any>();
 
   // State for the number of bins
@@ -137,11 +138,27 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
 
   useEffect(() => {
     const getData = async () => {
+      const newParams = Object.fromEntries(
+        Object.entries(paramsState).map(([key, value]) => [
+          key,
+          parseFloat(value),
+        ])
+      );
+
+      if (
+        Object.values(newParams)
+          .map((val) => isNaN(val))
+          .includes(true)
+      ) {
+        return;
+      }
+
       const newQuantity = await updateQuantityParams(
         quantity_.name,
-        paramsState,
+        newParams,
         quantity_.operator
       );
+
       setQuantity(newQuantity);
     };
 
@@ -311,9 +328,10 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
                   type="number"
                   value={value} // Handle undefined value gracefully
                   onChange={(e) => {
+                    let value = e.target.value.replace(/,/g, ".");
                     setParamsState({
                       ...paramsState,
-                      [key]: Number(e.target.value),
+                      [key]: value,
                     });
                   }}
                 />

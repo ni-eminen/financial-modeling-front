@@ -4,6 +4,11 @@ export type GammaModelParams = {
   scale: number;
 };
 
+export type NormalModelParams = {
+  loc: number;
+  scale: number;
+};
+
 export type BinomialModelParams = {
   n: number;
   p: number;
@@ -15,14 +20,44 @@ export type CategoricalModelParams = {
   values: number[];
 };
 
+export type PoissonModelParams = {
+  mu: number;
+};
+
+export type UniformModelParams = {
+  loc: number;
+  scale: number;
+};
+
+export type BernoulliModelParams = {
+  p: number;
+};
+
+export type GeomModelParams = {
+  p: number;
+};
+
 // Define a union type for ModelParams based on the model type
 export type ModelParams =
   | GammaModelParams
   | BinomialModelParams
-  | CategoricalModelParams;
+  | CategoricalModelParams
+  | NormalModelParams
+  | PoissonModelParams
+  | UniformModelParams
+  | GeomModelParams
+  | BernoulliModelParams;
 
 // Define the valid model types
-export type ModelType = "gamma" | "binomial" | "categorical";
+export type ModelType =
+  | "gamma"
+  | "binom"
+  | "norm"
+  | "uniform"
+  | "poisson"
+  | "categorical"
+  | "geom"
+  | "bernoulli";
 
 export type DomainType = "discrete" | "continuous" | "categorical";
 

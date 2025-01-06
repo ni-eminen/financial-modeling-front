@@ -71,7 +71,17 @@ const ProbablyApp = () => {
     model_params: ModelParams,
     categories: string[]
   ) => {
-    // console.log("Quantity created:", QuantityName);
+    // Sanitize params
+    for (const key of Object.keys(model_params)) {
+      // @ts-ignore TODO: Fix ts error
+      const numericVal = parseFloat(model_params[key]); // TODO: categorical is different. Create a handler for it.
+      if (isNaN(numericVal)) {
+        return;
+      }
+      // @ts-ignore TODO: Fix ts error
+      model_params[key] = numericVal;
+    }
+
     const quantity = await createQuantity(
       q_name,
       operator_name,
