@@ -24,7 +24,7 @@ import {
 } from "chart.js";
 import {
   Quantity,
-  XYSamplesCategorical,
+  XYSamplesMultinomial,
   XYSamplesNumerical,
 } from "../types/types";
 import { updateQuantityParams } from "../services/genericService";
@@ -86,7 +86,7 @@ const binSamplesData = (samples: number[], numberOfBins: number) => {
   };
 };
 
-const binPdfDataCategorical = (pdfSamples: XYSamplesNumerical) => {
+const binPdfDataMultinomial = (pdfSamples: XYSamplesNumerical) => {
   const nOfBins = pdfSamples.x.length;
 
   const bins = pdfSamples.y;
@@ -165,24 +165,10 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
     paramsState != quantity.params && getData();
   }, [paramsState]);
 
-  // Data for the histogram (bar chart)
-  // const samplesData = {
-  //   labels: samplesBin.binEdges.map((edge) => edge.toFixed(0)), // Use bin edges as labels
-  //   datasets: [
-  //     {
-  //       label: "Frequency",
-  //       data: samplesBin.bins,
-  //       backgroundColor: "rgba(75, 192, 192, 0.6)",
-  //       borderColor: "rgba(75, 192, 192, 1)",
-  //       borderWidth: 1,
-  //     },
-  //   ],
-  // };
-
   useEffect(() => {
     const pdfBin =
       quantity_.categories.length != 0
-        ? binPdfDataCategorical(quantity_.pdf_samples)
+        ? binPdfDataMultinomial(quantity_.pdf_samples)
         : binPdfData(quantity_.pdf_samples, numberOfBins);
     // Data for the PDF bin chart (displaying density per bin)
     const newPdfData = {
@@ -315,7 +301,8 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
         </Box>
 
         {/* Params */}
-        {quantity_.type !== "convolution" ? (
+        {quantity_.type !== "convolution" &&
+        quantity_.type !== "multinomial" ? (
           <Box sx={{ marginTop: 2 }}>
             <Typography gutterBottom>Parameters:</Typography>
             {Object.entries(paramsState).map(([key, value], i) => {

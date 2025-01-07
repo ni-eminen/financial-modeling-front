@@ -14,7 +14,7 @@ export type BinomialModelParams = {
   p: number;
 };
 
-export type CategoricalModelParams = {
+export type MultinomialModelParams = {
   p: number[];
   categories: string[];
   values: number[];
@@ -41,7 +41,7 @@ export type GeomModelParams = {
 export type ModelParams =
   | GammaModelParams
   | BinomialModelParams
-  | CategoricalModelParams
+  | MultinomialModelParams
   | NormalModelParams
   | PoissonModelParams
   | UniformModelParams
@@ -55,15 +55,15 @@ export type ModelType =
   | "norm"
   | "uniform"
   | "poisson"
-  | "categorical"
+  | "multinomial"
   | "geom"
   | "bernoulli";
 
-export type DomainType = "discrete" | "continuous" | "categorical";
+export type DomainType = "discrete" | "continuous" | "multinomial";
 
 export interface Quantity {
   name: string;
-  type: "convolution" | "generic" | "categorical";
+  type: "convolution" | "generic" | "multinomial";
   operator: string;
   samples: number[];
   pdf_samples: XYSamplesNumerical;
@@ -78,7 +78,7 @@ export interface XYSamplesNumerical {
   y: number[];
 }
 
-export interface XYSamplesCategorical {
+export interface XYSamplesMultinomial {
   x: string[];
   y: number[];
 }

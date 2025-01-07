@@ -7,7 +7,12 @@ import {
 } from "../services/genericService";
 import { CreateOperatorModal } from "./modals/CreateOperator";
 import { CreateQuantityModal } from "./modals/CreateQuantity";
-import { ModelParams, ModelType, Quantity } from "../types/types";
+import {
+  MultinomialModelParams,
+  ModelParams,
+  ModelType,
+  Quantity,
+} from "../types/types";
 import QuantityComponent from "./Quantity";
 import { CreateConvolutionModal } from "./modals/CreateConvolution";
 
@@ -71,15 +76,65 @@ const ProbablyApp = () => {
     model_params: ModelParams,
     categories: string[]
   ) => {
+    if (model == "multinomial") {
+      handleCreateMultinomialQuantity(
+        q_name,
+        operator_name,
+        model,
+        model_params as MultinomialModelParams,
+        categories
+      );
+      return;
+    }
+
     // Sanitize params
     for (const key of Object.keys(model_params)) {
       // @ts-ignore TODO: Fix ts error
-      const numericVal = parseFloat(model_params[key]); // TODO: categorical is different. Create a handler for it.
+      const numericVal = parseFloat(model_params[key]); // TODO: multinomial is different. Create a handler for it.
       if (isNaN(numericVal)) {
         return;
       }
       // @ts-ignore TODO: Fix ts error
       model_params[key] = numericVal;
+    }
+
+    const quantity = await createQuantity(
+      q_name,
+      operator_name,
+      model,
+      model_params,
+      categories
+    );
+
+    setQuantities([quantity, ...quantities]);
+    handleCloseCreateQuantityModal(); // Close the modal after creating the operator
+  };
+
+  // Handler for the "Create" button in the modal for multinomial quantities
+  const handleCreateMultinomialQuantity = async (
+    q_name: string,
+    operator_name: string,
+    model: ModelType,
+    model_params: MultinomialModelParams,
+    categories: string[]
+  ) => {
+    model_params["p"] = model_params["p"].map((x) => parseFloat(String(x)));
+    model_params.values = model_params.values.map((x) => parseFloat(String(x)));
+
+    if (model_params.p.includes(NaN)) {
+      console.log("Not a number in probabilities.");
+      return;
+    }
+
+    const pTotal = model_params.p.reduce(
+      (particalSum, next) => particalSum + next,
+      0
+    );
+
+    // Sanitize inputs
+    if (pTotal < 0.9999 && pTotal > 1.0001) {
+      console.log("Probabilities must sum up to 1.");
+      return;
     }
 
     const quantity = await createQuantity(

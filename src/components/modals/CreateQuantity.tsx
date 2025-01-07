@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import {
-  CategoricalModelParams,
+  MultinomialModelParams,
   ModelParams,
   ModelType,
 } from "../../types/types";
@@ -49,7 +49,7 @@ export const CreateQuantityModal = ({
     "gamma",
     "binom",
     "norm",
-    "categorical",
+    "multinomial",
     "poisson",
     "uniform",
     "bernoulli",
@@ -74,7 +74,7 @@ export const CreateQuantityModal = ({
         return {
           p: 0.5,
         };
-      case "categorical":
+      case "multinomial":
         return { p: [], categories: [], values: [] };
     }
   };
@@ -118,7 +118,7 @@ export const CreateQuantityModal = ({
           value={quantityName}
           onChange={handleQuantityNameChange}
         />
-        {modelType != "categorical" ? (
+        {modelType != "multinomial" ? (
           Object.keys(modelParams).map((arg: string, i: number) => {
             return (
               <TextField
@@ -176,7 +176,7 @@ export const CreateQuantityModal = ({
                             };
 
                             setCategories(
-                              (newModelParams as CategoricalModelParams)
+                              (newModelParams as MultinomialModelParams)
                                 .categories
                             );
 
