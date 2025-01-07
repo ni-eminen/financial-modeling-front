@@ -175,7 +175,9 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
       labels:
         quantity_.categories.length != 0
           ? quantity_.categories
-          : (pdfBin as any).binEdges.map((edge: any) => edge.toFixed(0)), // Use bin edges as labels
+          : (pdfBin as any).binEdges.map((edge: any) =>
+              edge >= 1 ? edge.toFixed(0) : edge.toFixed(2)
+            ), // Use bin edges as labels
       datasets: [
         {
           label: "PDF Density",

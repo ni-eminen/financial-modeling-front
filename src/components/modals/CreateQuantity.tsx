@@ -50,6 +50,7 @@ export const CreateQuantityModal = ({
     "binom",
     "norm",
     "multinomial",
+    "beta",
     "poisson",
     "uniform",
     "bernoulli",
@@ -70,6 +71,8 @@ export const CreateQuantityModal = ({
         return { loc: 0, scale: 0 };
       case "bernoulli":
         return { p: 0.5 };
+      case "beta":
+        return { a: 1, b: 1 };
       case "geom":
         return {
           p: 0.5,

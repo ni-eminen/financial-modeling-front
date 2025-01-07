@@ -37,6 +37,11 @@ export type GeomModelParams = {
   p: number;
 };
 
+export type BetaModelParams = {
+  a: number;
+  b: number;
+};
+
 // Define a union type for ModelParams based on the model type
 export type ModelParams =
   | GammaModelParams
@@ -46,7 +51,8 @@ export type ModelParams =
   | PoissonModelParams
   | UniformModelParams
   | GeomModelParams
-  | BernoulliModelParams;
+  | BernoulliModelParams
+  | BetaModelParams;
 
 // Define the valid model types
 export type ModelType =
@@ -56,6 +62,7 @@ export type ModelType =
   | "uniform"
   | "poisson"
   | "multinomial"
+  | "beta"
   | "geom"
   | "bernoulli";
 
