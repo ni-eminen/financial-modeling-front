@@ -121,60 +121,64 @@ const binPdfData = (pdfSamples: XYSamplesNumerical, numberOfBins: number) => {
   };
 };
 
-const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
-  const [quantity_, setQuantity] = useState<Quantity>(quantity);
+const QuantityComponent = ({
+  quantity,
+  setQuantity,
+  updateConvolutions,
+}: {
+  quantity: Quantity;
+  setQuantity: (q: Quantity) => void;
+  updateConvolutions: () => void;
+}) => {
   const [expanded, setExpanded] = useState(false);
   const [paramsState, setParamsState] = useState<{ [key: string]: string }>(
-    quantity_.params
+    quantity.params
   );
   const [pdfData, setPdfData] = useState<any>();
 
   // State for the number of bins
   const [numberOfBins, setNumberOfBins] = useState(
-    quantity_.domain_type == "discrete"
-      ? quantity_.pdf_samples.y.filter((y) => y != 0).length
+    quantity.domain_type == "discrete"
+      ? quantity.pdf_samples.y.filter((y) => y != 0).length
       : 10
   );
 
   useEffect(() => {
-    const getData = async () => {
-      const newParams = Object.fromEntries(
-        Object.entries(paramsState).map(([key, value]) => [
-          key,
-          parseFloat(value),
-        ])
-      );
-
-      if (
-        Object.values(newParams)
-          .map((val) => isNaN(val))
-          .includes(true)
-      ) {
-        return;
-      }
-
-      const newQuantity = await updateQuantityParams(
-        quantity_.name,
-        newParams,
-        quantity_.operator
-      );
-
-      setQuantity(newQuantity);
-    };
-
-    paramsState != quantity.params && getData();
+    // const getData = async () => {
+    //   const newParams = Object.fromEntries(
+    //     Object.entries(paramsState).map(([key, value]) => [
+    //       key,
+    //       parseFloat(value),
+    //     ])
+    //   );
+    //   if (
+    //     Object.values(newParams)
+    //       .map((val) => isNaN(val))
+    //       .includes(true)
+    //   ) {
+    //     return;
+    //   }
+    //   const newQuantity = await updateQuantityParams(
+    //     quantity.name,
+    //     newParams,
+    //     quantity.operator
+    //   );
+    //   setQuantity(newQuantity);
+    //   updateConvolutions();
+    // };
+    // paramsState != quantity.params && getData();
   }, [paramsState]);
 
   useEffect(() => {
     const pdfBin =
-      quantity_.categories.length != 0
-        ? binPdfDataMultinomial(quantity_.pdf_samples)
-        : binPdfData(quantity_.pdf_samples, numberOfBins);
+      quantity.categories.length != 0
+        ? binPdfDataMultinomial(quantity.pdf_samples)
+        : binPdfData(quantity.pdf_samples, numberOfBins);
     // Data for the PDF bin chart (displaying density per bin)
     const newPdfData = {
       labels:
-        quantity_.categories.length != 0
-          ? quantity_.categories
+        quantity.categories.length != 0
+          ? quantity.categories
           : (pdfBin as any).binEdges.map((edge: any) =>
               edge >= 1 ? edge.toFixed(0) : edge.toFixed(2)
             ), // Use bin edges as labels
@@ -189,12 +193,12 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
       ],
     };
     setPdfData(newPdfData);
-  }, [quantity_, numberOfBins]);
+  }, [quantity, numberOfBins]);
 
   // Data for the CDF line chart (displaying values directly)
   // Data for the CDF line chart (displaying values directly)
   const cdfData = {
-    labels: quantity_.cdf_samples.x.map((n) => {
+    labels: quantity.cdf_samples.x.map((n) => {
       if (typeof n == "string") {
         return n;
       }
@@ -203,7 +207,7 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
     datasets: [
       {
         label: "CDF Values",
-        data: quantity_.cdf_samples.y, // Directly use the cdf_samples values
+        data: quantity.cdf_samples.y, // Directly use the cdf_samples values
         borderColor: "rgba(153, 102, 255, 1)",
         fill: false,
         tension: 0.1,
@@ -277,10 +281,10 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
     <Card sx={{ margin: 2 }}>
       <CardContent>
         <Typography variant="h5" component="div">
-          {quantity_.name}
+          {quantity.name}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Operator: {quantity_.operator}
+          Operator: {quantity.operator}
         </Typography>
 
         {/* Slider to control the number of bins */}
@@ -303,25 +307,51 @@ const QuantityComponent = ({ quantity }: { quantity: Quantity }) => {
         </Box>
 
         {/* Params */}
-        {quantity_.type !== "convolution" &&
-        quantity_.type !== "multinomial" ? (
+        {quantity.type !== "convolution" && quantity.type !== "multinomial" ? (
           <Box sx={{ marginTop: 2 }}>
             <Typography gutterBottom>Parameters:</Typography>
             {Object.entries(paramsState).map(([key, value], i) => {
               return (
                 <TextField
                   sx={{ paddingTop: "8px", paddingBottom: "8px" }}
-                  key={key} // Add key prop for better performance and to avoid console warnings
+                  key={`${key}-${value}`} // Add key prop for better performance and to avoid console warnings
                   label={key}
                   id={`outlined-number-${i}`} // Ensure unique ID for each TextField
                   type="number"
                   value={value} // Handle undefined value gracefully
                   onChange={(e) => {
                     let value = e.target.value.replace(/,/g, ".");
-                    setParamsState({
+                    const newParamsState = {
                       ...paramsState,
                       [key]: value,
-                    });
+                    };
+                    setParamsState(newParamsState);
+                    const getData = async () => {
+                      const newParams = Object.fromEntries(
+                        Object.entries(newParamsState).map(([key, value]) => [
+                          key,
+                          parseFloat(value),
+                        ])
+                      );
+
+                      if (
+                        Object.values(newParams)
+                          .map((val) => isNaN(val))
+                          .includes(true)
+                      ) {
+                        return;
+                      }
+
+                      const newQuantity = await updateQuantityParams(
+                        quantity.name,
+                        newParams,
+                        quantity.operator
+                      );
+
+                      setQuantity(newQuantity);
+                      updateConvolutions();
+                    };
+                    paramsState != quantity.params && getData();
                   }}
                 />
               );

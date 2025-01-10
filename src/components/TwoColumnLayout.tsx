@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Grid, Paper, Typography, Button, Stack } from "@mui/material";
 import {
   createConvolution,
   createOperator,
   createQuantity,
+  getNewSamples,
 } from "../services/genericService";
 import { CreateOperatorModal } from "./modals/CreateOperator";
 import { CreateQuantityModal } from "./modals/CreateQuantity";
@@ -18,9 +19,9 @@ import { CreateConvolutionModal } from "./modals/CreateConvolution";
 
 const ProbablyApp = () => {
   // State for managing the modal open/close
-
   const [operators, setOperators] = useState<string[]>(["global"]);
   const [quantities, setQuantities] = useState<Quantity[]>([]);
+  const quantitiesRef = useRef(quantities);
   const [openCreateOperatorModal, setOpenCreateOperatorModal] = useState(false);
   const [openCreateQuantityModal, setOpenCreateQuantityModal] = useState(false);
   const [openCreateConvolutionModal, setOpenCreateConvolutionModal] =
@@ -39,7 +40,6 @@ const ProbablyApp = () => {
 
   // Handler for the "Create" button in the modal
   const handleCreateOperator = async (name: string) => {
-    // console.log("Operator created:", operatorName);
     const { operator_name } = await createOperator(name);
     setOperators([...operators, operator_name]);
     setSelectedOperator(operator_name);
@@ -106,8 +106,35 @@ const ProbablyApp = () => {
       categories
     );
 
-    setQuantities([quantity, ...quantities]);
+    const newQuantities = [quantity, ...quantities];
+    setQuantities(newQuantities);
+    quantitiesRef.current = newQuantities;
     handleCloseCreateQuantityModal(); // Close the modal after creating the operator
+  };
+
+  const updateConvolutions = async () => {
+    // Use map with async inside Promise.all to resolve all updates before setting state
+    const updatedQuantities = await Promise.all(
+      quantities.map(async (q) => {
+        if (q.type === "convolution") {
+          const samples = await getNewSamples(q.operator, q.name);
+          return { ...q, samples };
+        }
+
+        return q;
+      })
+    );
+
+    quantitiesRef.current = updatedQuantities;
+    setQuantities(updatedQuantities);
+  };
+
+  const updateQuantity = (updatedQuantity: Quantity) => {
+    const i = quantities.findIndex((qs) => updatedQuantity.name == qs.name);
+    const newQuantities = [...quantities];
+    newQuantities[i] = updatedQuantity;
+    quantitiesRef.current = newQuantities;
+    setQuantities(newQuantities);
   };
 
   // Handler for the "Create" button in the modal for multinomial quantities
@@ -145,7 +172,9 @@ const ProbablyApp = () => {
       categories
     );
 
-    setQuantities([quantity, ...quantities]);
+    const newQuantities = [quantity, ...quantities];
+    quantitiesRef.current = newQuantities;
+    setQuantities(newQuantities);
     handleCloseCreateQuantityModal(); // Close the modal after creating the operator
   };
 
@@ -167,8 +196,9 @@ const ProbablyApp = () => {
       operation,
       convolution_name
     );
-
-    setQuantities([quantity, ...quantities]);
+    const newQuantities = [quantity, ...quantities];
+    quantitiesRef.current = newQuantities;
+    setQuantities(newQuantities);
     handleCloseCreateQuantityModal(); // Close the modal after creating the operator
   };
 
@@ -263,12 +293,14 @@ const ProbablyApp = () => {
               <Grid container spacing={2}>
                 {quantities
                   .filter((q) => q.operator === selectedOperator)
-                  .map((q: Quantity, index: number) => (
-                    <>
-                      <Grid item xs={6} sm={6} md={6} lg={6} key={q.name}>
-                        <QuantityComponent quantity={q} />
-                      </Grid>
-                    </>
+                  .map((q: Quantity) => (
+                    <Grid item xs={6} sm={6} md={6} lg={6} key={q.name}>
+                      <QuantityComponent
+                        quantity={q}
+                        setQuantity={updateQuantity}
+                        updateConvolutions={updateConvolutions}
+                      />
+                    </Grid>
                   ))}
               </Grid>
             </Paper>

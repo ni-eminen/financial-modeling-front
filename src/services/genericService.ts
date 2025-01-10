@@ -126,8 +126,13 @@ export const getNewSamples = async (operator: string, quantity: string) => {
       operator_name: operator,
       quantity_name: quantity,
     };
-    const response = await apiClient.get(`${API_BASE_URL}/get-new-samples`);
-    return response.data;
+
+    const response = await apiClient.post(
+      `${API_BASE_URL}/get-new-samples`,
+      payload
+    );
+
+    return response.data.samples;
   } catch (error) {
     console.error("updateAllSamples", error);
     return { error };
