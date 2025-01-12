@@ -1,50 +1,83 @@
-import React, { useState } from 'react';
-import { Send, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// types.ts
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
-const AIAgentInterface = () => {
-  const [messages, setMessages] = useState([
+interface CollectedData {
+  name: string;
+  email: string;
+  purpose: string;
+  preferences: string;
+}
+
+interface Step {
+  validate: (input: string) => boolean;
+  nextStep: keyof CollectedData | 'complete';
+  errorMessage: string;
+  question: string;
+}
+
+interface Steps {
+  [key: string]: Step;
+}
+
+// AIAgentInterface.tsx
+import React, { useState, FormEvent, ChangeEvent } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  IconButton,
+  Typography,
+  Paper,
+  CircularProgress,
+} from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+
+const AIAgentInterface: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "Hi! I'll help collect some information. What's your name?" }
   ]);
-  const [userInput, setUserInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState('name');
-  const [collectedData, setCollectedData] = useState({
+  const [userInput, setUserInput] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentStep, setCurrentStep] = useState<keyof CollectedData>('name');
+  const [collectedData, setCollectedData] = useState<CollectedData>({
     name: '',
     email: '',
     purpose: '',
     preferences: ''
   });
 
-  // Questions for each step
-  const steps = {
+  const steps: Steps = {
     name: {
-      validate: (input) => input.length >= 2,
+      validate: (input: string) => input.length >= 2,
       nextStep: 'email',
       errorMessage: 'Please enter a valid name (at least 2 characters)',
       question: "What's your email address?"
     },
     email: {
-      validate: (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input),
+      validate: (input: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input),
       nextStep: 'purpose',
       errorMessage: 'Please enter a valid email address',
       question: 'What would you like assistance with today?'
     },
     purpose: {
-      validate: (input) => input.length >= 10,
+      validate: (input: string) => input.length >= 10,
       nextStep: 'preferences',
       errorMessage: 'Please provide more detail (at least 10 characters)',
       question: 'Do you have any specific preferences or requirements?'
     },
     preferences: {
-      validate: (input) => input.length >= 5,
+      validate: (input: string) => input.length >= 5,
       nextStep: 'complete',
       errorMessage: 'Please provide at least some preferences',
       question: 'Thank you! I have all the information I need.'
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!userInput.trim()) return;
 
@@ -72,7 +105,7 @@ const AIAgentInterface = () => {
     // Move to next step
     if (step.nextStep !== 'complete') {
       setMessages(prev => [...prev, { role: 'assistant', content: step.question }]);
-      setCurrentStep(step.nextStep);
+      setCurrentStep(step.nextStep as keyof CollectedData);
     } else {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -89,52 +122,61 @@ const AIAgentInterface = () => {
     setIsLoading(false);
   };
 
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUserInput(e.target.value);
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>AI Assistant</CardTitle>
-      </CardHeader>
+    <Card sx={{ maxWidth: 600, margin: 'auto', mt: 2 }}>
       <CardContent>
-        <div className="h-96 overflow-y-auto mb-4 space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {message.content}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Typography variant="h5" gutterBottom>
+          AI Assistant
+        </Typography>
         
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
+        <Box sx={{ height: 400, overflowY: 'auto', mb: 2 }}>
+          {messages.map((message, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: 'flex',
+                justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
+                mb: 1
+              }}
+            >
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 1,
+                  maxWidth: '80%',
+                  bgcolor: message.role === 'user' ? 'primary.main' : 'grey.100',
+                  color: message.role === 'user' ? 'white' : 'text.primary'
+                }}
+              >
+                <Typography variant="body1">
+                  {message.content}
+                </Typography>
+              </Paper>
+            </Box>
+          ))}
+        </Box>
+        
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', gap: 1 }}>
+          <TextField
+            fullWidth
             value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={handleInputChange}
             placeholder="Type your message..."
             disabled={isLoading}
+            size="small"
           />
-          <button
+          <IconButton
             type="submit"
-            className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
+            color="primary"
             disabled={isLoading || !userInput.trim()}
           >
-            {isLoading ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <Send className="w-6 h-6" />
-            )}
-          </button>
-        </form>
+            {isLoading ? <CircularProgress size={24} /> : <SendIcon />}
+          </IconButton>
+        </Box>
       </CardContent>
     </Card>
   );
